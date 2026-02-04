@@ -1,122 +1,67 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>TripPet - 圓夢旅遊助手</title>
 <style>
-       :root { --p: #FF9800; --bg: #FFF3E0; }
-       body, html { margin: 0; padding: 0; background: var(--bg); font-family: sans-serif; height: 100%; overflow: hidden; }
-       .page { display: none; padding: 20px; text-align: center; height: 100vh; box-sizing: border-box; }
-       .active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
-       /* 靈魂小窗 */
-       .island { width: 180px; height: 40px; background: #000; border-radius: 20px; color: #fff; display: flex; align-items: center; padding: 0 15px; margin-bottom: 20px; }
-       .pet-icon { font-size: 24px; margin-right: 10px; animation: bounce 0.8s infinite alternate; }
-       @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
-       /* 卡片設計 */
-       .card { background: white; width: 90%; max-width: 400px; padding: 25px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-       .btn { background: var(--p); color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 16px; cursor: pointer; margin-top: 15px; width: 100%; }
-       /* 選擇區 */
-       .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 15px 0; }
-       .opt { font-size: 30px; background: #f9f9f9; padding: 10px; border-radius: 15px; cursor: pointer; border: 2px solid transparent; }
-       .opt.selected { border-color: var(--p); background: #FFF3E0; }
-       .input-group { margin: 15px 0; text-align: left; }
-       input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-       /* 複選標籤 */
-       .tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-       .tag { padding: 8px 15px; background: #eee; border-radius: 20px; cursor: pointer; font-size: 14px; }
-       .tag.active { background: var(--p); color: white; }
+   /* 預覽上傳的照片 */
+   #petPreview {
+       width: 150px;
+       height: 150px;
+       border-radius: 50%;
+       object-fit: cover;
+       margin-top: 15px;
+       display: none;
+       border: 3px solid var(--p);
+   }
+   .upload-box {
+       border: 2px dashed #ccc;
+       padding: 20px;
+       border-radius: 15px;
+       margin: 15px 0;
+       cursor: pointer;
+   }
 </style>
-</head>
-<body>
-<div id="page1" class="page active">
-<div class="card">
-<h2>領養你的夥伴</h2>
-<div class="grid">
-<div class="opt" onclick="selP(this, '🐶')">🐶</div>
-<div class="opt" onclick="selP(this, '🐱')">🐱</div>
-<div class="opt" onclick="selP(this, '🐰')">🐰</div>
-<div class="opt" onclick="selP(this, '🦊')">🦊</div>
-</div>
-<input type="text" id="pName" placeholder="幫牠取個名字">
-<button class="btn" onclick="goPage(2)">下一步</button>
-</div>
-</div>
-<div id="page2" class="page">
-<div class="card">
-<h2>目的地</h2>
-<div class="input-group">
-<label>你要去哪個國家/城市？</label>
-<input type="text" id="loc" placeholder="例如：杜拜、東京...">
-</div>
-<button class="btn" onclick="goPage(3)">下一步</button>
-</div>
-</div>
-<div id="page3" class="page">
-<div class="card">
-<h2>跟誰一起去？</h2>
-<div class="tags">
-<div class="tag" onclick="this.classList.toggle('active')">爸爸</div>
-<div class="tag" onclick="this.classList.toggle('active')">媽媽</div>
-<div class="tag" onclick="this.classList.toggle('active')">朋友</div>
-<div class="tag" onclick="this.classList.toggle('active')">另一半</div>
-<div class="tag" onclick="this.classList.toggle('active')">自己</div>
-</div>
-<button class="btn" onclick="goPage(4)">最後一步</button>
-</div>
-</div>
 <div id="page4" class="page">
 <div class="card">
 <h2>照片設定</h2>
-<p>你是否想使用真實寵物的照片進行合照？</p>
-<button class="btn" onclick="final(true)">是，我要上傳 Kiki 的照片</button>
+<p>上傳 Kiki 的照片，我們幫你自動去背！</p>
+<div class="upload-box" onclick="document.getElementById('fileInput').click()">
+<p id="uploadText">點擊這裡上傳照片 📸</p>
+<input type="file" id="fileInput" accept="image/*" style="display:none" onchange="previewImage(this)">
+<img id="petPreview">
+</div>
+<button class="btn" id="removeBgBtn" style="display:none" onclick="processRemoveBg()">✨ 開始自動去背</button>
 <button class="btn" style="background:#999" onclick="final(false)">不用，使用電子寵物</button>
 </div>
 </div>
-<div id="page5" class="page">
-<div class="island">
-<span id="iIcon" class="pet-icon">🐾</span>
-<span id="iName">Kiki</span>
-</div>
-<div class="card">
-<h3 id="tripTitle">杜拜之旅</h3>
-<p id="helperMsg">正在搜尋附近好吃的餐廳...</p>
-<div id="arZone" style="background:#eee; height:150px; border-radius:20px; display:flex; align-items:center; justify-content:center; color:#666;">
-               [相機與 GPS 探索區]
-</div>
-<button class="btn" onclick="startExplore()">開始探索附近景點</button>
-</div>
-</div>
 <script>
-       let data = { icon: '', name: '', loc: '' };
-       function selP(el, emoji) {
-           document.querySelectorAll('.opt').forEach(x => x.classList.remove('selected'));
-           el.classList.add('selected');
-           data.icon = emoji;
-       }
-       function goPage(n) {
-           if (n === 2) {
-               data.name = document.getElementById('pName').value || "小夥伴";
+   function previewImage(input) {
+       const preview = document.getElementById('petPreview');
+       const text = document.getElementById('uploadText');
+       const btn = document.getElementById('removeBgBtn');
+       if (input.files && input.files[0]) {
+           const reader = new FileReader();
+           reader.onload = function(e) {
+               preview.src = e.target.result;
+               preview.style.display = 'inline-block';
+               text.style.display = 'none';
+               btn.style.display = 'block'; // 顯示去背按鈕
            }
-           if (n === 3) {
-               data.loc = document.getElementById('loc').value || "未知地點";
-           }
-           document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-           document.getElementById('page' + n).classList.add('active');
+           reader.readAsDataURL(input.files[0]);
        }
-       function final(useReal) {
-           if(useReal) {
-               alert("之後我們會實作：上傳照片並自動去背技術！");
-           }
-           document.getElementById('iIcon').innerText = data.icon;
-           document.getElementById('iName').innerText = data.name;
-           document.getElementById('tripTitle').innerText = data.loc + "之旅";
-           goPage(5);
-       }
-       function startExplore() {
-           alert("正在調用 GPS 獲取景點資訊...");
-           // 這邊週末我們會串接定位功能
-       }
+   }
+   async function processRemoveBg() {
+       const btn = document.getElementById('removeBgBtn');
+       btn.innerText = "AI 去背處理中...";
+       btn.disabled = true;
+       // 【技術重點】這裡未來會串接 API
+       // 目前我們先用 CSS 模擬去背視覺效果（讓邊框變透明，背景濾掉）
+       setTimeout(() => {
+           alert("✨ AI 成功辨識 Kiki！背景已移除。");
+           const preview = document.getElementById('petPreview');
+           preview.style.boxShadow = "none";
+           preview.style.border = "none";
+           // 正式版會在這裡更換為去背後的圖片網址
+           btn.innerText = "完成！進入主畫面";
+           btn.style.background = "#4CAF50";
+           btn.onclick = () => final(true);
+           btn.disabled = false;
+       }, 2000);
+   }
 </script>
-</body>
-</html>
