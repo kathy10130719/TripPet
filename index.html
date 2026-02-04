@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripPet - 帶著 Kiki 去旅行</title>
+<style>
+       /* 暖色調 App 風格設計 */
+       :root {
+           --primary-color: #FF9800; /* 溫暖的橘色 */
+           --bg-color: #FFF3E0;      /* 淺橘色背景 */
+       }
+       body {
+           font-family: -apple-system, sans-serif;
+           background-color: var(--bg-color);
+           margin: 0;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           min-height: 100vh;
+           max-width: 500px; /* 模擬手機寬度 */
+           margin: 0 auto;
+           border-left: 1px solid #FFE0B2;
+           border-right: 1px solid #FFE0B2;
+       }
+       /* 互動式靈魂小窗 */
+       .status-portal {
+           width: 180px;
+           height: 40px;
+           background: #333;
+           border-radius: 25px;
+           margin-top: 20px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           color: white;
+           transition: all 0.4s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+           cursor: pointer;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+       }
+       .status-portal:active {
+           width: 300px;
+           height: 100px;
+       }
+       .pet-avatar { font-size: 24px; margin-right: 10px; }
+       .pet-info { text-align: left; }
+       /* 主畫面卡片 */
+       .main-card {
+           width: 90%;
+           background: white;
+           border-radius: 20px;
+           margin-top: 30px;
+           padding: 20px;
+           box-shadow: 0 10px 25px rgba(255,152,0,0.1);
+           text-align: center;
+       }
+       h1 { color: var(--primary-color); font-size: 24px; }
+       .greeting { font-size: 18px; color: #555; margin-bottom: 20px; }
+       button {
+           background-color: var(--primary-color);
+           color: white;
+           border: none;
+           padding: 12px 25px;
+           border-radius: 50px;
+           font-size: 16px;
+           cursor: pointer;
+           box-shadow: 0 4px 10px rgba(255,152,0,0.3);
+       }
+</style>
+</head>
+<body onload="initPet()">
+<div class="status-portal" id="portal">
+<span class="pet-avatar">🐶</span>
+<div class="pet-info">
+<div id="displayPetName">載入中...</div>
+</div>
+</div>
+<div class="main-card">
+<h1>🌍 TripPet 旅遊助手</h1>
+<p class="greeting" id="welcomeMessage">哈囉！準備好出發了嗎？</p>
+<img id="petImg" src="https://images.unsplash.com/photo-1516734212186-a967f81ad0d7?auto=format&fit=crop&w=200&q=80" style="width:150px; border-radius: 50%; margin-bottom: 20px;">
+<br>
+<button onclick="resetName()">重新替小夥伴取名</button>
+</div>
+<script>
+       // 核心邏輯：初始化寵物名字
+       function initPet() {
+           let savedName = localStorage.getItem("TripPet_Name");
+           if (!savedName) {
+               // 第一次使用，顯示歡迎詞並要求輸入名字
+               alert("🐶：嗨！我是你的旅遊小夥伴，很高興見到你！✨");
+               let name = prompt("請幫我取一個好聽的名字吧（例如：Kiki）：");
+               if (name && name.trim() !== "") {
+                   localStorage.setItem("TripPet_Name", name);
+                   savedName = name;
+               } else {
+                   savedName = "小夥伴"; // 預設名稱
+               }
+           }
+           // 更新畫面上的名字
+           document.getElementById('displayPetName').innerText = savedName;
+           document.getElementById('welcomeMessage').innerText = savedName + " 已經準備好跟你去旅行了！🚀";
+       }
+       // 重新命名的功能
+       function resetName() {
+           localStorage.removeItem("TripPet_Name");
+           location.reload(); // 重新整理頁面觸發命名流程
+       }
+</script>
+</body>
+</html>
