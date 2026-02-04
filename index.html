@@ -22,45 +22,85 @@
            border-left: 1px solid #FFE0B2;
            border-right: 1px solid #FFE0B2;
        }
-       /* 互動式靈魂小窗 */
+       /* --- 互動式靈魂小窗 (動態島) --- */
        .status-portal {
            width: 180px;
            height: 40px;
-           background: #333;
+           background: #000; /* 純黑更有質感 */
            border-radius: 25px;
            margin-top: 20px;
            display: flex;
            align-items: center;
-           justify-content: center;
+           /* justify-content: center;  移除置中，改用 padding */
+           padding: 0 15px; /* 左右留邊距 */
            color: white;
-           box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+           box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+           position: relative; /* 為了讓裡面的寵物定位 */
+           overflow: hidden; /* 確保寵物不會跑到島外面 */
        }
-       .pet-avatar-mini { font-size: 20px; margin-right: 8px; }
-       /* 主畫面卡片 */
+       /* 住在島裡面的寵物 */
+       .pet-in-island {
+           font-size: 24px;
+           margin-right: 12px;
+           /* 新動畫：模擬走路的小跳動 */
+           animation: walk-in-place 0.8s ease-in-out infinite alternate;
+       }
+       @keyframes walk-in-place {
+           0% { transform: translateY(0px) rotate(0deg); }
+           100% { transform: translateY(-3px) rotate(5deg); } /* 輕微往上跳並歪頭 */
+       }
+       #displayPetName {
+           font-size: 14px;
+           font-weight: 500;
+       }
+       /* --- 主畫面卡片 --- */
        .main-card {
-           width: 90%;
+           width: 85%;
            background: white;
            border-radius: 30px;
            margin-top: 30px;
-           padding: 30px 20px;
+           padding: 30px 25px;
            box-shadow: 0 10px 25px rgba(255,152,0,0.1);
            text-align: center;
        }
-       /* 電子寵物顯示區 */
-       .pet-display {
-           font-size: 80px;
-           margin: 20px 0;
-           animation: breathe 2s ease-in-out infinite;
-           display: inline-block;
+       h1 { color: var(--primary-color); font-size: 22px; margin-bottom: 10px; }
+       .greeting { font-size: 16px; color: #666; margin-bottom: 30px; line-height: 1.5; }
+       /* --- 寵物選擇區 --- */
+       #setupSection {
+           display: none; /* 預設隱藏，需要設定時才顯示 */
        }
-       /* 呼吸動畫，讓電子寵物像在動一樣 */
-       @keyframes breathe {
-           0%, 100% { transform: scale(1); }
-           50% { transform: scale(1.1); }
+       .pet-grid {
+           display: grid;
+           grid-template-columns: repeat(4, 1fr); /* 一排四個 */
+           gap: 15px;
+           margin-bottom: 25px;
        }
-       h1 { color: var(--primary-color); font-size: 22px; margin-bottom: 5px; }
-       .greeting { font-size: 18px; color: #555; margin-bottom: 30px; }
-       button {
+       .pet-option {
+           font-size: 35px;
+           background: #f5f5f5;
+           border-radius: 15px;
+           padding: 10px;
+           cursor: pointer;
+           transition: all 0.2s;
+           border: 2px solid transparent;
+       }
+       .pet-option:hover, .pet-option.selected {
+           background: #FFF3E0;
+           border-color: var(--primary-color);
+           transform: scale(1.1);
+       }
+       /* 按鈕樣式 */
+       .btn-primary {
+           background-color: var(--primary-color);
+           color: white;
+           border: none;
+           padding: 12px 30px;
+           border-radius: 50px;
+           font-size: 16px;
+           cursor: pointer;
+           box-shadow: 0 4px 10px rgba(255,152,0,0.3);
+       }
+       .btn-secondary {
            background-color: #eee;
            color: #777;
            border: none;
@@ -70,40 +110,100 @@
            cursor: pointer;
            margin-top: 20px;
        }
+       #mainContentSection {
+           display: none; /* 預設隱藏，設定完才顯示 */
+       }
 </style>
 </head>
-<body onload="initPet()">
+<body onload="initApp()">
 <div class="status-portal">
-<span class="pet-avatar-mini">🐶</span>
+<span class="pet-in-island" id="islandPetIcon">🐾</span>
 <div id="displayPetName">載入中...</div>
 </div>
 <div class="main-card">
 <h1>🌍 TripPet 旅遊助手</h1>
-<p class="greeting" id="welcomeMessage">哈囉！</p>
-<div class="pet-display">🐶</div>
+<div id="setupSection">
+<p class="greeting">嗨！初次見面。<br>請選擇你想領養的旅遊夥伴：</p>
+<div class="pet-grid">
+<div class="pet-option" onclick="selectPet(this, '🐶')">🐶</div>
+<div class="pet-option" onclick="selectPet(this, '🐱')">🐱</div>
+<div class="pet-option" onclick="selectPet(this, '🐰')">🐰</div>
+<div class="pet-option" onclick="selectPet(this, '🐤')">🐤</div>
+<div class="pet-option" onclick="selectPet(this, '🐷')">🐷</div>
+<div class="pet-option" onclick="selectPet(this, '🦊')">🦊</div>
+<div class="pet-option" onclick="selectPet(this, '🐼')">🐼</div>
+<div class="pet-option" onclick="selectPet(this, '🐨')">🐨</div>
+</div>
+<input type="text" id="nameInput" placeholder="幫牠取個名字吧" style="padding: 10px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 20px; width: 80%; text-align: center;">
 <br>
-<button onclick="resetName()">重新替小夥伴取名</button>
+<button class="btn-primary" onclick="finishSetup()">確認領養！</button>
+</div>
+
+<div id="mainContentSection">
+<p class="greeting" id="welcomeMessage">準備好出發了嗎？</p>
+<p style="color: #999; font-size: 14px;">(更多功能週末即將上線...)</p>
+<button class="btn-secondary" onclick="resetPet()">重新選擇寵物</button>
+</div>
 </div>
 <script>
-       function initPet() {
+       // 全域變數，暫存使用者的選擇
+       let selectedEmoji = null;
+       // App 初始化
+       function initApp() {
            let savedName = localStorage.getItem("TripPet_Name");
-           if (!savedName) {
-               alert("🐶：嗨！我是你的旅遊小夥伴，很高興見到你！✨");
-               // 這裡刪除了（例如：Kiki）
-               let name = prompt("請幫我取一個好聽的名字吧：");
-               if (name && name.trim() !== "") {
-                   localStorage.setItem("TripPet_Name", name);
-                   savedName = name;
-               } else {
-                   savedName = "小夥伴";
-               }
+           let savedIcon = localStorage.getItem("TripPet_Icon");
+           if (!savedName || !savedIcon) {
+               // 如果沒有存檔，顯示設定區
+               document.getElementById('setupSection').style.display = 'block';
+               document.getElementById('mainContentSection').style.display = 'none';
+               document.getElementById('displayPetName').innerText = "等待領養中...";
+           } else {
+               // 如果有存檔，直接進入主畫面
+               showMainUI(savedName, savedIcon);
            }
-           document.getElementById('displayPetName').innerText = savedName;
-           document.getElementById('welcomeMessage').innerText = savedName + " 已經準備好跟你去旅行了！🚀";
        }
-       function resetName() {
-           localStorage.removeItem("TripPet_Name");
-           location.reload();
+       // 選擇寵物時的動作
+       function selectPet(element, emoji) {
+           // 清除其他選項的選取狀態
+           document.querySelectorAll('.pet-option').forEach(el => el.classList.remove('selected'));
+           // 設定當前選項為選取狀態
+           element.classList.add('selected');
+           selectedEmoji = emoji;
+           // 讓島上的寵物先預覽變身
+           document.getElementById('islandPetIcon').innerText = selectedEmoji;
+       }
+       // 完成設定
+       function finishSetup() {
+           let nameInput = document.getElementById('nameInput').value.trim();
+           if (!selectedEmoji) {
+               alert("請先點選一隻喜歡的寵物喔！");
+               return;
+           }
+           if (nameInput === "") {
+               nameInput = "小夥伴"; // 預設名字
+           }
+           // 存檔
+           localStorage.setItem("TripPet_Name", nameInput);
+           localStorage.setItem("TripPet_Icon", selectedEmoji);
+           // 進入主畫面
+           showMainUI(nameInput, selectedEmoji);
+       }
+       // 顯示主畫面並更新 UI
+       function showMainUI(name, icon) {
+           document.getElementById('setupSection').style.display = 'none';
+           document.getElementById('mainContentSection').style.display = 'block';
+           // 更新動態島
+           document.getElementById('islandPetIcon').innerText = icon;
+           document.getElementById('displayPetName').innerText = name;
+           // 更新歡迎詞
+           document.getElementById('welcomeMessage').innerHTML = `嗨！我是 <b>${name}</b>。<br>我們什麼時候要出發去旅行？🗺️`;
+       }
+       // 重置設定
+       function resetPet() {
+           if(confirm("確定要重新選擇寵物嗎？舊的紀錄會消失喔！")) {
+               localStorage.clear();
+               location.reload();
+           }
        }
 </script>
 </body>
