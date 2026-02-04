@@ -1,11 +1,132 @@
-// 測試開啟相機的功能
-async function startCamera() {
-   try {
-       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-       const videoElement = document.getElementById('cameraFeed');
-       videoElement.srcObject = stream;
-       // 這時候背景就會變成相機畫面，Kiki 依然浮在上面
-   } catch (err) {
-       alert("無法開啟相機，請檢查權限設定喔！");
-   }
-}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripPet - 帶著 Kiki 去旅行</title>
+<style>
+       :root {
+           --primary-color: #FF9800;
+           --bg-color: #FFF3E0;
+       }
+       body, html {
+           margin: 0; padding: 0; width: 100%; height: 100%;
+           font-family: -apple-system, sans-serif;
+           background-color: var(--bg-color);
+           overflow: hidden; /* 防止拍照時畫面亂跳 */
+       }
+       /* --- 相機背景層 --- */
+       #cameraContainer {
+           position: fixed;
+           top: 0; left: 0;
+           width: 100%; height: 100%;
+           z-index: -1; /* 放在最底層 */
+           background: #000;
+           display: none; /* 預設關閉 */
+       }
+       #cameraFeed {
+           width: 100%; height: 100%;
+           object-fit: cover; /* 讓畫面填滿手機螢幕 */
+       }
+       /* --- 容器限制 --- */
+       .app-container {
+           max-width: 500px;
+           margin: 0 auto;
+           height: 100vh;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           position: relative;
+       }
+       /* --- 動態島 --- */
+       .status-portal {
+           width: 180px; height: 40px;
+           background: rgba(0,0,0,0.8); /* 稍微透明更有高級感 */
+           border-radius: 25px;
+           margin-top: 20px;
+           display: flex; align-items: center;
+           padding: 0 15px; color: white;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+           z-index: 10;
+       }
+       .pet-in-island {
+           font-size: 24px; margin-right: 12px;
+           animation: walk-in-place 0.8s ease-in-out infinite alternate;
+       }
+       @keyframes walk-in-place {
+           0% { transform: translateY(0px) rotate(0deg); }
+           100% { transform: translateY(-4px) rotate(8deg); }
+       }
+       /* --- 主畫面卡片 --- */
+       .main-card {
+           width: 85%; background: rgba(255,255,255,0.9);
+           border-radius: 30px; margin-top: 30px;
+           padding: 25px; text-align: center;
+           transition: opacity 0.3s;
+       }
+       /* 當相機開啟時，讓卡片變透明一點，才不會擋住風景 */
+       .main-card.camera-on { opacity: 0.3; }
+       .btn-camera {
+           background-color: #4CAF50; /* 綠色代表出發 */
+           color: white; border: none;
+           padding: 15px 30px; border-radius: 50px;
+           font-size: 18px; cursor: pointer;
+           margin-top: 20px; font-weight: bold;
+       }
+</style>
+</head>
+<body onload="initApp()">
+<div id="cameraContainer">
+<video id="cameraFeed" autoplay playsinline></video>
+</div>
+<div class="app-container">
+<div class="status-portal">
+<span class="pet-in-island" id="islandPetIcon">🐾</span>
+<div id="displayPetName">載入中...</div>
+</div>
+<div class="main-card" id="uiCard">
+<h1>🌍 TripPet 旅遊模式</h1>
+<p id="welcomeMessage">哈囉！點擊下方按鈕跟 Kiki 一起看世界吧！</p>
+<button class="btn-camera" onclick="toggleCamera()">📸 開啟實景模式</button>
+<br>
+<button style="margin-top:20px; border:none; background:none; color:#999;" onclick="localStorage.clear(); location.reload();">重選寵物</button>
+</div>
+</div>
+<script>
+       let isCameraOn = false;
+       function initApp() {
+           let name = localStorage.getItem("TripPet_Name") || "小夥伴";
+           let icon = localStorage.getItem("TripPet_Icon") || "🐶";
+           document.getElementById('displayPetName').innerText = name;
+           document.getElementById('islandPetIcon').innerText = icon;
+       }
+       // 開啟/關閉相機的邏輯
+       async function toggleCamera() {
+           const container = document.getElementById('cameraContainer');
+           const card = document.getElementById('uiCard');
+           const video = document.getElementById('cameraFeed');
+           if (!isCameraOn) {
+               try {
+                   // 向手機請求相機權限
+                   const stream = await navigator.mediaDevices.getUserMedia({
+                       video: { facingMode: "environment" } // 強制使用後鏡頭
+                   });
+                   video.srcObject = stream;
+                   container.style.display = 'block';
+                   card.classList.add('camera-on');
+                   isCameraOn = true;
+               } catch (err) {
+                   alert("哎呀！無法開啟相機，請檢查權限設定喔！");
+               }
+           } else {
+               // 關閉相機
+               let tracks = video.srcObject.getTracks();
+               tracks.forEach(track => track.stop());
+               container.style.display = 'none';
+               card.classList.remove('camera-on');
+               isCameraOn = false;
+           }
+       }
+</script>
+</body>
+</html>
